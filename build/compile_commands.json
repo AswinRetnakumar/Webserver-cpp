@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/aswin/Desktop/webserver_cpp/build",
+  "command": "/usr/bin/g++ -g -std=gnu++23 -o CMakeFiles/server.dir/src/main.cpp.o -c /home/aswin/Desktop/webserver_cpp/src/main.cpp",
+  "file": "/home/aswin/Desktop/webserver_cpp/src/main.cpp",
+  "output": "CMakeFiles/server.dir/src/main.cpp.o"
+}
+]
