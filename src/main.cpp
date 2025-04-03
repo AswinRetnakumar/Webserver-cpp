@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <stdexcept>
+#include <thread>
 
 #define PORT 7500
 
@@ -27,7 +28,7 @@ class Request{
         
         string get_static_file()
         {
-            char* file = "";
+            char* file = new char[512];
             cout << "I get Static" << endl;
             if(strcmp(path,"/") == 0)
             {
@@ -36,7 +37,7 @@ class Request{
             }
             else
             {
-
+                delete file;
                 return "";
             }
             cout << "File: " << file << endl;
@@ -51,6 +52,7 @@ class Request{
                 return read_file_to_string(file_path);
             }
             cout << "File does not exist" << endl;
+            delete file_path;
             return "";
         }
 
@@ -134,7 +136,7 @@ int main()
         return -1;
     }
     std::cout << "Binded to PORT: " << PORT << std::endl;
-
+    int total_calls = 0;
     if(listen(socket_fd, 15) < 0)
         {
             std::cout << "Failed to listen on socket" << std::endl;
@@ -146,31 +148,36 @@ int main()
         
         // client communication
         int client_fd = accept(socket_fd, (struct sockaddr *)&address, (socklen_t *)&address_len);
+        total_calls += 1;
         if(client_fd < 0)
         {
             std::cout << "client connection failed" << std::endl;
             return -1;
         }
         std::cout << "Connected to client.." << std::endl;
-        read(client_fd, buffer, 2048);
-        std::cout << "Message from client: " << buffer << std::endl;
-        vector<char*> parsed_data;
-        parse_request(buffer, parsed_data);
-        std::cout << "Method: " << parsed_data[0] << std::endl;
-        std::cout << "Path: " << parsed_data[1] << std::endl;
-        Request request(parsed_data[0], parsed_data[1], "./sample");
-        string file_str =request.get_static_file();
-        string response;
-        if(file_str != "")
-        {
-            response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + to_string(file_str.size()) + "\n\n" + file_str;
+        cout << "Number of calls: " << total_calls<< endl;
+        int bytes_read = read(client_fd, buffer, 2048);
+        if(bytes_read > 0){
+            std::cout << "Message from client: " << buffer << std::endl;
+            vector<char*> parsed_data;
+            parse_request(buffer, parsed_data);
+            std::cout << "Method: " << parsed_data[0] << std::endl;
+            std::cout << "Path: " << parsed_data[1] << std::endl;
+            Request request(parsed_data[0], parsed_data[1], "./sample");
+            string file_str =request.get_static_file();
+            string response;
+            if(file_str != "")
+            {
+                response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + to_string(file_str.size()) + "\n\n" + file_str;
+            }
+            else
+            {
+                response = "HTTP/1.1 404 Not Found\nContent-Type: text/html\nContent-Length: 0\n\n";
+            }
+            send(client_fd, response.c_str(), response.size(), 0);
+            cout << "Response sent to client: "<< response << endl;
+    
         }
-        else
-        {
-            response = "HTTP/1.1 404 Not Found\nContent-Type: text/html\nContent-Length: 0\n\n";
-        }
-        send(client_fd, response.c_str(), response.size(), 0);
-        cout << "Response sent to client: "<< response << endl;
         cout << "Closing client connection" << endl;
         close(client_fd);
 
