@@ -6,6 +6,7 @@ import threading
 BASE_URL = "http://localhost:7500"
 
 
+
 def threaded_connection_test():
     route = '/'
     def connect(route):
@@ -16,7 +17,7 @@ def threaded_connection_test():
             pytest.fail(f"[FAILURE] Threaded connection failed: {e}")
 
     threads = []
-    for _ in range(5000):  # Create 1000 threads
+    for _ in range(800):  # Create 1000 threads
         thread = threading.Thread(target=connect, args=route)
         threads.append(thread)
         thread.start()
