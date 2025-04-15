@@ -1,3 +1,0 @@
-/home/aswin/Desktop/webserver_cpp/build/CMakeFiles/server.dir
-/home/aswin/Desktop/webserver_cpp/build/CMakeFiles/edit_cache.dir
-/home/aswin/Desktop/webserver_cpp/build/CMakeFiles/rebuild_cache.dir

@@ -98,6 +98,44 @@ char* parse_request(char* buffer, vector<char*> &parsed_data)
     return token;
 }
 
+void client_connection(int client_fd, int total_calls)
+{
+    char buffer[2048] = {0};
+    std::cout << "Connected to client.." << std::endl;
+    cout << "Number of calls: " << total_calls<< endl;
+
+    int bytes_read = read(client_fd, buffer, 2048);
+
+    if(bytes_read > 0){
+        std::cout << "Message from client: " << buffer << std::endl;
+
+        vector<char*> parsed_data;
+        parse_request(buffer, parsed_data);
+        std::cout << "Method: " << parsed_data[0] << std::endl;
+        std::cout << "Path: " << parsed_data[1] << std::endl;
+
+        Request request(parsed_data[0], parsed_data[1], "./sample");
+        string file_str =request.get_static_file();
+        string response;
+
+        if(file_str != "")
+        {
+            response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + to_string(file_str.size()) + "\n\n" + file_str;
+        }
+        else
+        {
+            response = "HTTP/1.1 404 Not Found\nContent-Type: text/html\nContent-Length: 0\n\n";
+        }
+
+        send(client_fd, response.c_str(), response.size(), 0);
+        cout << "Response sent to client: "<< response << endl;
+
+    }
+    cout << "Closing client connection" << endl;
+    close(client_fd);
+
+}
+
 int main()
 {
 
@@ -106,7 +144,6 @@ int main()
     int address_len = sizeof(address);
 
     int option = 1;
-    char buffer[2048] = {0};
 
     if(socket_fd == 0)
     {
@@ -152,34 +189,11 @@ int main()
         if(client_fd < 0)
         {
             std::cout << "client connection failed" << std::endl;
-            return -1;
+            continue;
         }
-        std::cout << "Connected to client.." << std::endl;
-        cout << "Number of calls: " << total_calls<< endl;
-        int bytes_read = read(client_fd, buffer, 2048);
-        if(bytes_read > 0){
-            std::cout << "Message from client: " << buffer << std::endl;
-            vector<char*> parsed_data;
-            parse_request(buffer, parsed_data);
-            std::cout << "Method: " << parsed_data[0] << std::endl;
-            std::cout << "Path: " << parsed_data[1] << std::endl;
-            Request request(parsed_data[0], parsed_data[1], "./sample");
-            string file_str =request.get_static_file();
-            string response;
-            if(file_str != "")
-            {
-                response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + to_string(file_str.size()) + "\n\n" + file_str;
-            }
-            else
-            {
-                response = "HTTP/1.1 404 Not Found\nContent-Type: text/html\nContent-Length: 0\n\n";
-            }
-            send(client_fd, response.c_str(), response.size(), 0);
-            cout << "Response sent to client: "<< response << endl;
-    
-        }
-        cout << "Closing client connection" << endl;
-        close(client_fd);
+        thread client_connection_thread(client_connection, client_fd, total_calls);
+        client_connection_thread.detach();
+
 
     }
     close(socket_fd);
