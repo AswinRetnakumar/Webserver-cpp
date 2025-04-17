@@ -11,7 +11,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 add_library(threadpool STATIC src/ThreadPool.cpp)
 
 add_executable(server   src/main.cpp)
-
+target_link_libraries(server PRIVATE threadpool)
 
 # Add the unit test executable
 add_executable(ThreadPoolTest src/utest/ThreadPoolTest.cpp)

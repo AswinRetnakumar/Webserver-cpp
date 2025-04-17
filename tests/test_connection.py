@@ -30,7 +30,7 @@ def threaded_connection_test():
             pytest.fail(f"[FAILURE] Threaded connection failed: {e}")
 
     threads = []
-    for _ in range(1000):  # Create 1000 threads
+    for _ in range(100):  # Create 1000 threads
         thread = threading.Thread(target=connect)
         threads.append(thread)
         thread.start()

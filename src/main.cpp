@@ -7,6 +7,7 @@
 #include <vector>
 #include <stdexcept>
 #include <thread>
+#include "ThreadPool.h"
 
 #define PORT 7500
 
@@ -142,6 +143,7 @@ int main()
     int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in address;
     int address_len = sizeof(address);
+    ThreadPool t_pool = ThreadPool(1024);
 
     int option = 1;
 
@@ -191,8 +193,11 @@ int main()
             std::cout << "client connection failed" << std::endl;
             continue;
         }
-        thread client_connection_thread(client_connection, client_fd, total_calls);
-        client_connection_thread.detach();
+        // thread client_connection_thread(client_connection, client_fd, total_calls);
+        // client_connection_thread.detach();
+        t_pool.add_task([client_fd, total_calls](){
+            client_connection(client_fd, total_calls);
+        });
 
 
     }
